@@ -99,33 +99,19 @@ void StereoMixerAudioProcessor::releaseResources()
 void StereoMixerAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer, juce::MidiBuffer& midiMessages)
 {
     juce::ScopedNoDenormals noDenormals;
-    auto totalNumInputChannels  = getTotalNumInputChannels();
-    auto totalNumOutputChannels = getTotalNumOutputChannels();
 
     auto numSamples = buffer.getNumSamples();
-  
-    for (auto i = totalNumInputChannels; i < totalNumOutputChannels; ++i)       //CLEARING...
-        buffer.clear (i, 0, numSamples);
-
-
-    ///auto* channelData = buffer.getArrayOfWritePointers();
     
-    for (int channel = 0; channel < totalNumInputChannels; ++channel)
+    //auto* channelData = buffer.getWritePointer (channel);
+    auto channelData = buffer.getArrayOfWritePointers();
+    for (int s = 0; s < numSamples; ++s)              
     {
-        if (channel == 0)
-        {
-            leftGain.applyGain(buffer, numSamples);
-        }
-        if (channel == 1)
-        {
-            rightGain.applyGain(buffer, numSamples);
-            
-        }
-        //auto* channelData = buffer.getWritePointer (channel);
-        
-        // ..do something to the data...
+        auto currentRightGain = rightGain.getNextValue();
+        auto currentLeftGain = leftGain.getNextValue();
+
+        channelData[0][s] *= currentLeftGain;
+        channelData[1][s] *= currentRightGain;
     }
-    
 }
 
 
